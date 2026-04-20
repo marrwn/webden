@@ -15,6 +15,7 @@ export default function GamePreview({ config }: GamePreviewProps) {
   const [lives, setLives] = useState(config.lives);
   const [gameOver, setGameOver] = useState(false);
   const [gameWon, setGameWon] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
 
   // Game state refs (to avoid strict dependency issues in loop)
   const stateRef = useRef({
@@ -72,6 +73,7 @@ export default function GamePreview({ config }: GamePreviewProps) {
     setGameOver(false);
     setGameWon(false);
     setIsPlaying(false);
+    setHasStarted(false);
   }, [config]);
 
   // Handle prop changes (restart game or just apply superficial UI updates)
@@ -261,8 +263,10 @@ export default function GamePreview({ config }: GamePreviewProps) {
         onClick={() => {
           if (gameOver || gameWon) {
             initGame();
+            setHasStarted(true);
             setIsPlaying(true);
           } else if (!isPlaying) {
+            setHasStarted(true);
             setIsPlaying(true);
           }
         }}
@@ -283,7 +287,7 @@ export default function GamePreview({ config }: GamePreviewProps) {
         </div>
       </div>
 
-      {(!isPlaying && !gameOver && !gameWon) && (
+      {(!hasStarted && !gameOver && !gameWon) && (
         <div className="absolute inset-0 flex items-center justify-center bg-background/40 pointer-events-none backdrop-blur-sm transition-all">
           <div className="bg-background px-6 py-3 rounded-md border shadow-sm transition-transform">
             <p className="text-foreground text-sm font-semibold uppercase tracking-wider">Click to Start</p>

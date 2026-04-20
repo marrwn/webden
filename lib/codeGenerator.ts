@@ -199,6 +199,7 @@ window.addEventListener('DOMContentLoaded', function() {
   const config = ${JSON.stringify(config, null, 2)};
   
   // State
+  let hasStarted = false;
   let isPlaying = false;
   let score = 0;
   let lives = config.lives;
@@ -260,13 +261,14 @@ window.addEventListener('DOMContentLoaded', function() {
     gameOver = false;
     gameWon = false;
     isPlaying = false;
+    hasStarted = false;
     
     updateScreens();
     draw();
   }
 
   function updateScreens() {
-    startScreen.classList.toggle('hidden', isPlaying || gameOver || gameWon);
+    startScreen.classList.toggle('hidden', hasStarted);
     gameOverScreen.classList.toggle('hidden', !gameOver);
     gameWonScreen.classList.toggle('hidden', !gameWon);
     if(gameOver || gameWon || !isPlaying) {
@@ -418,10 +420,12 @@ window.addEventListener('DOMContentLoaded', function() {
   canvas.addEventListener('click', function() {
     if (gameOver || gameWon) {
       initGame();
+      hasStarted = true;
       isPlaying = true;
       updateScreens();
       loop();
     } else if (!isPlaying) {
+      hasStarted = true;
       isPlaying = true;
       updateScreens();
       loop();
