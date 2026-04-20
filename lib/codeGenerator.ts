@@ -351,29 +351,34 @@ window.addEventListener('DOMContentLoaded', function() {
       dy = (dy / currentSpeed) * targetSpeed;
     }
 
+    const paddleY = config.canvasHeight - 10 - paddleH;
+    
     if (x + dx > config.canvasWidth - radius || x + dx < radius) dx = -dx;
     if (y + dy < radius) dy = -dy;
-    else if (y + dy > config.canvasHeight - radius - 10 - paddleH) {
-      if (x > state.paddle.x && x < state.paddle.x + paddleW) {
+    
+    if (dy > 0 && y + radius <= paddleY && y + dy + radius >= paddleY) {
+      if (x + dx > state.paddle.x && x + dx < state.paddle.x + paddleW) {
         dy = -dy;
-        dx = dx + ((x - (state.paddle.x + paddleW/2)) * 0.05);
-      } else if (y + dy > config.canvasHeight - radius) {
-        lives--;
-        renderLives();
-        if (lives <= 0) {
-          gameOver = true;
-          isPlaying = false;
-          updateScreens();
-          return;
-        } else {
-          state.ball.x = config.canvasWidth / 2;
-          state.ball.y = config.canvasHeight - 40;
-          state.ball.dx = 5 * config.ballSpeed * (Math.random() > 0.5 ? 1 : -1);
-          state.ball.dy = -5 * config.ballSpeed;
-          isPlaying = false;
-          updateScreens();
-          return;
-        }
+        dx = dx + ((x + dx - (state.paddle.x + paddleW/2)) * 0.05);
+      }
+    }
+    
+    if (y + dy > config.canvasHeight - radius) {
+      lives--;
+      renderLives();
+      if (lives <= 0) {
+        gameOver = true;
+        isPlaying = false;
+        updateScreens();
+        return;
+      } else {
+        state.ball.x = config.canvasWidth / 2;
+        state.ball.y = config.canvasHeight - 40;
+        state.ball.dx = 5 * config.ballSpeed * (Math.random() > 0.5 ? 1 : -1);
+        state.ball.dy = -5 * config.ballSpeed;
+        isPlaying = false;
+        updateScreens();
+        return;
       }
     }
 
@@ -382,10 +387,14 @@ window.addEventListener('DOMContentLoaded', function() {
     const blockW = config.blockWidth || availableWidth / config.blockColumns;
     const blockH = config.blockHeight || 20;
 
+    let hasBounced = false;
     for (const b of state.blocks) {
       if (b.status === 1) {
         if (x + radius > b.x && x - radius < b.x + blockW && y + radius > b.y && y - radius < b.y + blockH) {
-          dy = -dy;
+          if (!hasBounced) {
+            dy = -dy;
+            hasBounced = true;
+          }
           b.status = 0;
           score += config.scoreMultiplier;
           scoreEl.innerText = Math.floor(score).toString();

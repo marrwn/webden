@@ -149,43 +149,51 @@ export default function GamePreview({ config }: GamePreviewProps) {
        dy = (dy / currentSpeed) * targetSpeed;
     }
 
+    const paddleY = config.canvasHeight - 10 - paddleH;
+
     // Bounce off walls
     if (x + dx > config.canvasWidth - radius || x + dx < radius) {
       dx = -dx;
     }
     if (y + dy < radius) {
       dy = -dy;
-    } else if (y + dy > config.canvasHeight - radius - 10 - paddleH) {
-      // Bounce off paddle
-      if (x > st.paddle.x && x < st.paddle.x + paddleW) {
+    }
+    
+    // Bounce off paddle reliably
+    if (dy > 0 && y + radius <= paddleY && y + dy + radius >= paddleY) {
+      if (x + dx > st.paddle.x && x + dx < st.paddle.x + paddleW) {
         dy = -dy;
-        // Optionally add English (spin) based on where it hit
-        dx = dx + ((x - (st.paddle.x + paddleW/2)) * 0.05);
-      } else if (y + dy > config.canvasHeight - radius) {
-        // Lose a life
-        st.lives--;
-        setLives(st.lives);
-        if (st.lives <= 0) {
-          setGameOver(true);
-          setIsPlaying(false);
-          return;
-        } else {
-          // Reset ball position
-          st.ball.x = config.canvasWidth / 2;
-          st.ball.y = config.canvasHeight - 40;
-          st.ball.dx = 5 * config.ballSpeed * (Math.random() > 0.5 ? 1 : -1);
-          st.ball.dy = -5 * config.ballSpeed;
-          setIsPlaying(false);
-          return;
-        }
+        dx = dx + ((x + dx - (st.paddle.x + paddleW/2)) * 0.05);
+      }
+    }
+
+    // Floor - lose life
+    if (y + dy > config.canvasHeight - radius) {
+      st.lives--;
+      setLives(st.lives);
+      if (st.lives <= 0) {
+        setGameOver(true);
+        setIsPlaying(false);
+        return;
+      } else {
+        st.ball.x = config.canvasWidth / 2;
+        st.ball.y = config.canvasHeight - 40;
+        st.ball.dx = 5 * config.ballSpeed * (Math.random() > 0.5 ? 1 : -1);
+        st.ball.dy = -5 * config.ballSpeed;
+        setIsPlaying(false);
+        return;
       }
     }
 
     // Block Collision
+    let hasBounced = false;
     for (const b of st.blocks) {
       if (b.status === 1) {
         if (x + radius > b.x && x - radius < b.x + blockW && y + radius > b.y && y - radius < b.y + blockH) {
-          dy = -dy;
+          if (!hasBounced) {
+            dy = -dy;
+            hasBounced = true;
+          }
           b.status = 0;
           st.score += config.scoreMultiplier;
           setScore(Math.floor(st.score));
